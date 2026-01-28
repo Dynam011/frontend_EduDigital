@@ -90,16 +90,13 @@ export default function LoginPage() {
       // Actualizar lastLogin en el backen
 
       if (data.user_type == "student") {
-        console.log("student");
-        router.push("/dashboard/student");
+        window.location.replace("/dashboard/student");
       } else if (data.user_type == "teacher") {
-        console.log("teacher");
-        router.push("/dashboard/teacher");
+        window.location.replace("/dashboard/teacher");
       } else if (data.user_type == "admin") {
-        console.log("usando perfil admin");
-        router.push("/dashboard/admin");
+        window.location.replace("/dashboard/admin");
       } else {
-        router.push("/dashboard");
+        window.location.replace("/dashboard");
       }
     } catch (err) {
       setError("No se pudo conectar con el servidor.");

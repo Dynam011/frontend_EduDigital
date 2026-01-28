@@ -13,38 +13,35 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { user, isLoading, isAuthenticated } = useAuth()
-  const router = useRouter()
+  const { user, isLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated) {
-        router.push("/login")
-        return
-      }
-
-      if (requiredRole && user?.userType !== requiredRole) {
-        router.push("/dashboard")
-        return
-      }
+    if (isLoading) return; // Nunca redirigir si está cargando
+    if (!isAuthenticated) {
+      // Redirigir solo si no está autenticado y ya terminó de cargar
+      window.location.replace("/login");
+      return;
     }
-  }, [isLoading, isAuthenticated, user, requiredRole, router])
+    if (requiredRole && user?.userType !== requiredRole) {
+      window.location.replace("/dashboard");
+      return;
+    }
+  }, [isLoading, isAuthenticated, user, requiredRole]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader className="animate-spin text-primary" size={32} />
       </div>
-    )
+    );
   }
-
+  // Mientras no esté autenticado, no renderizar nada (evita parpadeos)
   if (!isAuthenticated) {
-    return null
+    return null;
   }
-
   if (requiredRole && user?.userType !== requiredRole) {
-    return null
+    return null;
   }
-
-  return <>{children}</>
+  return <>{children}</>;
 }
