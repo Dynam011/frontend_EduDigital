@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts"
 import { api_url } from "../../api/api"
-
+import { useAuth } from "@/lib/auth-context"
 export default function TeacherDashboard() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("overview")
