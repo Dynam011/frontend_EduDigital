@@ -199,35 +199,43 @@ export default function TeacherDashboard() {
           <div>
             {
               (() => {
+
                 const TeacherName: React.FC = () => {
-                  const [name, setName] = useState<string | null>(null)
+                  const [name, setName] = useState<string | null>(null);
+                  const [loading, setLoading] = useState(true);
 
                   useEffect(() => {
-                    const id = localStorage.getItem("userId")
-                    const token = localStorage.getItem("authToken")
-                    if (!id) return
-
-                    let mounted = true
+                    const id = localStorage.getItem("userId");
+                    const token = localStorage.getItem("authToken");
+                    if (!id || !token) {
+                      setName(null);
+                      setLoading(false);
+                      return;
+                    }
+                    let cancelled = false;
+                    setLoading(true);
                     fetch(`${api_url}/api/users/${id}`, {
                       headers: { Authorization: `Bearer ${token}` },
                     })
                       .then((res) => res.json())
                       .then((data) => {
-                        if (!mounted) return
-                        // Ajusta según la estructura de respuesta (ej. data.name, data.first_name, etc.)
-                        setName(data?.name || `${data?.first_name || ""} ${data?.last_name || ""}`.trim() || "Profesor")
+                        if (cancelled) return;
+                        setName(data?.name || `${data?.first_name || ""} ${data?.last_name || ""}`.trim() || "Profesor");
+                        setLoading(false);
                       })
                       .catch(() => {
-                        if (mounted) setName("Profesor")
-                      })
-
+                        if (!cancelled) {
+                          setName("Profesor");
+                          setLoading(false);
+                        }
+                      });
                     return () => {
-                      mounted = false
-                    }
-                  }, [])
+                      cancelled = true;
+                    };
+                  }, []);
 
-                  return <h1 className="text-4xl font-bold mb-2">Panel del docente {name ?? "Cargando..."}</h1>
-                }
+                  return <h1 className="text-4xl font-bold mb-2">Panel del docente {loading ? "Cargando..." : name}</h1>;
+                };
 
                 return <TeacherName />
               })()
