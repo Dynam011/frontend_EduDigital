@@ -16,18 +16,6 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (isLoading) return; // Nunca redirigir si está cargando
-    if (!isAuthenticated) {
-      // Redirigir solo si no está autenticado y ya terminó de cargar
-      window.location.replace("/login");
-      return;
-    }
-    if (requiredRole && user?.userType !== requiredRole) {
-      window.location.replace("/dashboard");
-      return;
-    }
-  }, [isLoading, isAuthenticated, user, requiredRole]);
 
   if (isLoading) {
     return (
