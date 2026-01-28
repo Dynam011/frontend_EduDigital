@@ -15,21 +15,5 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
-
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader className="animate-spin text-primary" size={32} />
-      </div>
-    );
-  }
-  // Mientras no esté autenticado, no renderizar nada (evita parpadeos)
-  if (!isAuthenticated) {
-    return null;
-  }
-  if (requiredRole && user?.userType !== requiredRole) {
-    return null;
-  }
   return <>{children}</>;
 }
