@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -107,9 +108,9 @@ export default function StudentDashboard() {
     fetchData()
   }, [router])
 
+  const { logout } = useAuth()
   const handleLogout = () => {
-    localStorage.removeItem("authToken")
-    router.push("/")
+    logout()
   }
 
   const handleLeaveCourse = async (courseId: string) => {

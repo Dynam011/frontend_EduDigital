@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Menu, X, LogOut, Settings, User, Bell, Search } from "lucide-react"
 import { useState } from "react"
+import { useAuth } from "@/lib/auth-context"
 import { ThemeToggleButton } from "@/components/theme-toggle-button"
 
 export function Navbar() {
@@ -20,10 +21,9 @@ export function Navbar() {
   const isProfilePage = pathname.startsWith("/dashboard/profile")
   const isNotificationsPage = pathname.startsWith("/dashboard/notifications")
 
+  const { logout } = useAuth()
   const handleLogout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("userRole")
-    router.push("/")
+    logout()
   }
 
   // Si está en landing page, mostrar navbar especial

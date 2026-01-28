@@ -118,9 +118,9 @@ export default function TeacherDashboard() {
     fetchData()
   }, [router])
 
+  const { logout } = useAuth()
   const handleLogout = () => {
-    localStorage.removeItem("authToken")
-    router.push("/")
+    logout()
   }
 
   // Handlers para acciones de los cursos

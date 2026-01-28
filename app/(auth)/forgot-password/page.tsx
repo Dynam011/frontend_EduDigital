@@ -149,15 +149,22 @@ export default function ForgotPasswordPage() {
             {success && !isModalOpen && (
               <div className="text-green-500 text-sm text-center">{success}</div>
             )}
-            <Button type="submit" className="w-full" disabled={isLoading || isModalOpen}>
+            <Button
+              type="submit"
+              className="w-full py-3 text-base md:text-lg rounded-lg md:rounded-xl transition-all duration-200 flex items-center justify-center gap-2 min-h-[48px] md:min-h-[56px]"
+              disabled={isLoading || isModalOpen}
+            >
               {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Verificar usuario
+              <span className="truncate">Verificar</span>
             </Button>
           </form>
           <div className="border-t border-border pt-4">
             <Link href="/login">
-              <Button variant="outline" className="w-full bg-transparent">
-                Volver al login
+              <Button
+                variant="outline"
+                className="w-full bg-transparent py-3 text-base md:text-lg rounded-lg md:rounded-xl transition-all duration-200 min-h-[48px] md:min-h-[56px]"
+              >
+                <span className="truncate">Volver al login</span>
               </Button>
             </Link>
           </div>
@@ -202,13 +209,22 @@ export default function ForgotPasswordPage() {
               <div className="text-green-500 text-sm text-center">{success}</div>
             )}
             <DialogFooter>
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full py-3 text-base md:text-lg rounded-lg md:rounded-xl transition-all duration-200 flex items-center justify-center gap-2 min-h-[48px] md:min-h-[56px]"
+                disabled={isLoading}
+              >
                 {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Cambiar Contraseña
+                <span className="truncate">Cambiar Contraseña</span>
               </Button>
               <DialogClose asChild>
-                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-                  Cancelar
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full bg-transparent py-3 text-base md:text-lg rounded-lg md:rounded-xl transition-all duration-200 min-h-[48px] md:min-h-[56px]"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  <span className="truncate">Cancelar</span>
                 </Button>
               </DialogClose>
             </DialogFooter>
