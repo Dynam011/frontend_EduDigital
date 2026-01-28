@@ -87,21 +87,13 @@ export default function LoginPage() {
       localStorage.setItem("userType", data.user_type)
       localStorage.setItem("userId", data.id)
 
-      // Actualizar lastLogin en el backend
-      try {
-        await fetch(`${api_url}/api/users/profile`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ lastLogin: new Date().toISOString(), id: data.id }),
-        });
-      } catch (err) {
-        // Puedes mostrar un error o ignorar si solo es informativo
-      }
+      // Actualizar lastLogin en el backen
 
       if (data.user_type == "student") {
         console.log("student")
         router.push("/dashboard/student")
       } else if (data.user_type == "teacher") {
+        console.log("teacher")
         router.push("/dashboard/teacher")
       }else if (data.user_type == "admin") {
         console.log("usando perfil admin")
