@@ -216,12 +216,6 @@ export function Navbar() {
                 >
                   Explorar Cursos
                 </Link>
-                <Link
-                  href="/dashboard/student/course"
-                  className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded transition"
-                >
-                  Mis Cursos
-                </Link>
               </>
             )}
 
