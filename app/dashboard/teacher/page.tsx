@@ -205,6 +205,7 @@ export default function TeacherDashboard() {
                   const [loading, setLoading] = useState(true);
 
                   useEffect(() => {
+                    if (name) return; // Si ya hay nombre, no volver a pedir
                     const id = localStorage.getItem("userId");
                     const token = localStorage.getItem("authToken");
                     if (!id || !token) {
@@ -220,7 +221,8 @@ export default function TeacherDashboard() {
                       .then((res) => res.json())
                       .then((data) => {
                         if (cancelled) return;
-                        setName(data?.name || `${data?.first_name || ""} ${data?.last_name || ""}`.trim() || "Profesor");
+                        const resolvedName = data?.name || `${data?.first_name || ""} ${data?.last_name || ""}`.trim() || "Profesor";
+                        setName(resolvedName);
                         setLoading(false);
                       })
                       .catch(() => {
@@ -232,7 +234,7 @@ export default function TeacherDashboard() {
                     return () => {
                       cancelled = true;
                     };
-                  }, []);
+                  }, [name]);
 
                   return <h1 className="text-4xl font-bold mb-2">Panel del docente {loading ? "Cargando..." : name}</h1>;
                 };
