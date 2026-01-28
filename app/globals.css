@@ -1,0 +1,87 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* --- FONDO Y TEXTO (Pureza y Legibilidad) --- */
+  --background: oklch(1 0 0); 
+  --foreground: oklch(0.25 0.05 240); /* Azul acero muy oscuro para el texto */
+  
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.25 0.05 240);
+  
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.25 0.05 240);
+
+  /* --- PRIMARIO: AZUL ACERO VIBRANTE --- */
+  /* Elevamos el croma para que no sea gris, sino un azul con carácter */
+  --primary: oklch(0.45 0.12 245); 
+  --primary-foreground: oklch(0.98 0.01 240); 
+
+  /* --- SECUNDARIO/ACENTO: MENTA ELÉCTRICO --- */
+  /* Este es el que hará que la página "explote" visualmente */
+  --secondary: oklch(0.88 0.18 170); 
+  --secondary-foreground: oklch(0.30 0.10 170); 
+  
+  --muted: oklch(0.96 0.02 240); 
+  --muted-foreground: oklch(0.55 0.06 240); 
+  
+  --accent: oklch(0.92 0.14 165); 
+  --accent-foreground: oklch(0.25 0.08 170); 
+  
+  /* --- ESTADOS Y BORDES --- */
+  --destructive: oklch(0.60 0.20 25); 
+  --destructive-foreground: oklch(0.98 0 0); 
+
+  --border: oklch(0.90 0.03 240);
+  --input: oklch(0.90 0.03 240);
+  --ring: oklch(0.45 0.12 245); 
+
+  --radius: 0.75rem;
+
+  /* Sidebar con un toque de azul acero muy sutil */
+  --sidebar: oklch(0.98 0.01 240);
+  --sidebar-foreground: oklch(0.25 0.05 240);
+  --sidebar-primary: oklch(0.45 0.12 245);
+  --sidebar-border: oklch(0.92 0.02 240);
+}
+
+.dark {
+  /* --- FONDO: AZUL ACERO PROFUNDO --- */
+  /* Evitamos el negro puro para ganar profundidad */
+  --background: oklch(0.18 0.04 245); 
+  --foreground: oklch(0.95 0.02 240); 
+  
+  --card: oklch(0.22 0.04 245);
+  --card-foreground: oklch(0.95 0.02 240);
+  
+  --popover: oklch(0.22 0.04 245);
+  --popover-foreground: oklch(0.95 0.02 240);
+
+  /* --- PRIMARIO: AZUL ACERO LUMINOSO --- */
+  --primary: oklch(0.65 0.12 240); 
+  --primary-foreground: oklch(0.15 0.04 240); 
+
+  /* --- SECUNDARIO: NEÓN MENTA --- */
+  --secondary: oklch(0.82 0.18 165); 
+  --secondary-foreground: oklch(0.15 0.08 170); 
+  
+  --muted: oklch(0.28 0.04 245);
+  --muted-foreground: oklch(0.70 0.05 240);
+  
+  --accent: oklch(0.35 0.08 245); 
+  --accent-foreground: oklch(0.90 0.10 165); 
+
+  --destructive: oklch(0.65 0.18 30); 
+  --destructive-foreground: oklch(1 0 0); 
+
+  --border: oklch(0.28 0.04 245);
+  --input: oklch(0.28 0.04 245);
+  --ring: oklch(0.65 0.12 240);
+
+  --sidebar: oklch(0.15 0.04 245);
+  --sidebar-foreground: oklch(0.95 0.02 240);
+  --sidebar-primary: oklch(0.65 0.12 240);
+  --sidebar-border: oklch(0.25 0.04 245);
+}
