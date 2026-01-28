@@ -106,17 +106,19 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background">
       {/* Header Navigation */}
       <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          
-        <div className="flex items-center gap-2 mb-2">
-    {/* Logo de la institución */}
-    <img 
-      src="/logo.png" 
-      alt="Logo de la Institución" 
-      className="h-12 w-auto object-contain" 
-    />
-    <h3 className="font-bold text-lg">EduDigital</h3>
-  </div>
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-2 flex items-center justify-between h-12 sm:h-14">
+          <div className="flex items-center gap-2 mb-0">
+            {/* Logo de la institución */}
+            <img
+              src="/logo.png"
+              alt="Logo de la Institución"
+              className="h-8 w-auto object-contain sm:h-10"
+              style={{ maxWidth: '32vw' }}
+            />
+            <h3 className="font-bold text-sm sm:text-base truncate max-w-[32vw]" style={{ lineHeight: 1.1 }}>
+              EduDigital
+            </h3>
+          </div>
           <nav className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-foreground hover:text-primary transition">
               Características
