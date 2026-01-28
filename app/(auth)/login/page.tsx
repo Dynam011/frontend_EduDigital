@@ -61,50 +61,50 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       const response = await fetch(`${api_url}/api/auth/login`, {
-  method: 'POST',
-  credentials: 'include', // ¡Esto es clave!
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email, password })
-});
+        method: 'POST',
+        credentials: 'include', // ¡Esto es clave!
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        setError(errorData.error || "Error al iniciar sesión.")
-        return
-      }
-      
-
-      const data = await response.json()
-     
-
-      if ( !data.user_type) {
-        setError("Credenciales inválidas.")
-        return
+        const errorData = await response.json();
+        setError(errorData.error || "Error al iniciar sesión.");
+        return;
       }
 
+      const data = await response.json();
 
-     localStorage.setItem("authToken", data.token)
-      localStorage.setItem("userType", data.user_type)
-      localStorage.setItem("userId", data.id)
+      if (!data.user_type) {
+        setError("Credenciales inválidas.");
+        return;
+      }
+
+      localStorage.setItem("authToken", data.token);
+      localStorage.setItem("userType", data.user_type);
+      localStorage.setItem("userId", data.id);
+
+      // Guardar el token en cookie para el middleware (expira en 7 días, path global)
+      document.cookie = `authToken=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}`;
 
       // Actualizar lastLogin en el backen
 
       if (data.user_type == "student") {
-        console.log("student")
-        router.push("/dashboard/student")
+        console.log("student");
+        router.push("/dashboard/student");
       } else if (data.user_type == "teacher") {
-        console.log("teacher")
-        router.push("/dashboard/teacher")
-      }else if (data.user_type == "admin") {
-        console.log("usando perfil admin")
-        router.push("/dashboard/admin")
+        console.log("teacher");
+        router.push("/dashboard/teacher");
+      } else if (data.user_type == "admin") {
+        console.log("usando perfil admin");
+        router.push("/dashboard/admin");
       } else {
-        router.push("/dashboard")
+        router.push("/dashboard");
       }
     } catch (err) {
-      setError("No se pudo conectar con el servidor.")
+      setError("No se pudo conectar con el servidor.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
