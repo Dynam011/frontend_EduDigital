@@ -8,7 +8,7 @@ import Link from "next/link"
 import { ArrowLeft, BookOpen, FileText, Layers, FileDown } from "lucide-react"
 import { api_url } from "@/app/api/api"
 
-const backendBaseUrl = "http://localhost:4000"; // o tu dominio real
+const backendBaseUrl = "https://backend-edudigital.onrender.com"; // o tu dominio real
 
 const TeacherCoursePage = () => {
   const params = useParams()

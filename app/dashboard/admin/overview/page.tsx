@@ -25,7 +25,7 @@ export default function AdminUsersPage() {
 		async function fetchUsers() {
 			setLoading(true);
 			try {
-				const res = await fetch("http://localhost:4000/api/users");
+				const res = await fetch("https://backend-edudigital.onrender.com/api/users");
 				const data = await res.json();
         console.log(data);
 				setUsers(data);
@@ -46,7 +46,7 @@ export default function AdminUsersPage() {
 	const handleSave = async () => {
 		setSaving(true);
 		try {
-			await fetch(`http://localhost:4000/api/users/${editId}`, {
+			await fetch(`https://backend-edudigital.onrender.com/api/users/${editId}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(editData),
@@ -54,7 +54,7 @@ export default function AdminUsersPage() {
 			setEditId(null);
 			setEditData({});
 			// Refrescar usuarios
-			const res = await fetch("http://localhost:4000/api/users");
+			const res = await fetch("https://backend-edudigital.onrender.com/api/users");
 			setUsers(await res.json());
 		} catch (err) {
 			// Manejar error

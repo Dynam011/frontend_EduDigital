@@ -21,15 +21,15 @@ export default function AdminDashboard() {
       setLoading(true);
       try {
         const [statsRes, coursesRes, modulesRes, lessonsRes, enrollmentsRes, quizzesRes, assignmentsRes, discussionsRes, resourcesRes] = await Promise.all([
-          fetch('http://localhost:4000/api/admin/stats'),
-          fetch('http://localhost:4000/api/courses'),
-          fetch('http://localhost:4000/api/modules'),
-          fetch('http://localhost:4000/api/lessons'),
-          fetch('http://localhost:4000/api/enrollments'),
-          fetch('http://localhost:4000/api/quizzes'),
-          fetch('http://localhost:4000/api/assignments'),
-          fetch('http://localhost:4000/api/discussions?all=1'),
-          fetch('http://localhost:4000/api/courseResource'),
+          fetch('https://backend-edudigital.onrender.com/api/admin/stats'),
+          fetch('https://backend-edudigital.onrender.com/api/courses'),
+          fetch('https://backend-edudigital.onrender.com/api/modules'),
+          fetch('https://backend-edudigital.onrender.com/api/lessons'),
+          fetch('https://backend-edudigital.onrender.com/api/enrollments'),
+          fetch('https://backend-edudigital.onrender.com/api/quizzes'),
+          fetch('https://backend-edudigital.onrender.com/api/assignments'),
+          fetch('https://backend-edudigital.onrender.com/api/discussions?all=1'),
+          fetch('https://backend-edudigital.onrender.com/api/courseResource'),
         ]);
         setStats(await statsRes.json());
         setCourses(await coursesRes.json());
