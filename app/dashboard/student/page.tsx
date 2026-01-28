@@ -180,17 +180,11 @@ export default function StudentDashboard() {
         </div>
 
         {/* Key Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Card className="border-0 bg-gradient-to-br from-blue-500/5 to-blue-600/5 hover:shadow-md transition">
             <div className="p-4">
               <div className="text-lg font-semibold">Cursos Activos</div>
               <div className="text-3xl">{courses.length}</div>
-            </div>
-          </Card>
-          <Card className="border-0 bg-gradient-to-br from-green-500/5 to-green-600/5 hover:shadow-md transition">
-            <div className="p-4">
-              <div className="text-lg font-semibold">Tareas Pendientes</div>
-              <div className="text-3xl">{tasks.length}</div>
             </div>
           </Card>
           <Card className="border-0 bg-gradient-to-br from-yellow-500/5 to-yellow-600/5 hover:shadow-md transition">
