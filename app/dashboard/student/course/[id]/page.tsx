@@ -62,9 +62,13 @@ export default function CourseDetailPage() {
 
         const enrollments = await enrollRes.json()
         console.log(enrollments)
-        setIsEnrolled(enrollments.some((e: any) => String(e.course_id) === String(courseId)))
+        // Filtrar solo inscripciones de este curso (por si el backend retorna más)
+        const filteredEnrollments = enrollments.filter((e: any) => String(e.course_id) === String(courseId))
+        setIsEnrolled(filteredEnrollments.some((e: any) => String(e.student_id) === String(localStorage.getItem("userId"))))
+        console.log(isEnrolled)
+        console.log(localStorage.getItem("userId"))
         console.log(courseId)
-        setStudentsCount(enrollments.length)
+        setStudentsCount(filteredEnrollments.length)
 
         // 5. Reviews (simulado, ajusta según tu backend)
         setReviews([

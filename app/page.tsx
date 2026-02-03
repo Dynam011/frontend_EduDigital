@@ -152,8 +152,7 @@ export default function LandingPage() {
                 Enseña y Aprende <span className="text-primary">sin Límites</span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-lg">
-                La plataforma educativa completa que conecta docentes con estudiantes. Crea cursos interactivos, evalúa
-                el progreso y certificа logros en un solo lugar.
+                La plataforma educativa completa que conecta docentes con estudiantes. Crea cursos interactivos, sube recursos y mas en un solo lugar.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/register?role=student">
@@ -302,11 +301,13 @@ export default function LandingPage() {
       <footer id="contact" className="border-t border-border py-12 px-4 sm:px-6 lg:px-8 bg-card/50">
     <h3 className="text-sm text-muted-foreground">© 2026 EduDigital. Todos los derechos reservados.</h3>
             <div className="flex gap-4">
-              <a href="#" className="text-muted-foreground hover:text-foreground transition">
+              <a href="https://www.instagram.com/liceo.santa.rosalia" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">
                 Instagram
               </a>
           
-          
+          <a href="https://www.facebook.com/liceonacional.santarosalia.3" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition">
+                Facebook
+              </a>
             </div>
         
 

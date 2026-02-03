@@ -11,6 +11,13 @@ import { ArrowLeft, GripVertical, Plus, Trash2, Edit2, FileDown } from "lucide-r
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from "@/components/ui/select"
 
 import { api_url } from "@/app/api/api"
 
@@ -29,6 +36,7 @@ export default function EditCoursePage() {
   const [materialUrl, setMaterialUrl] = useState("")
   const [materialUploading, setMaterialUploading] = useState(false)
   const [materialError, setMaterialError] = useState("")
+  const [materialType, setMaterialType] = useState<'file' | 'link'>('file')
 
   const [modules, setModules] = useState<any[]>([])
   const [course, setCourse] = useState<any>(null)
@@ -66,12 +74,13 @@ export default function EditCoursePage() {
   }
 
   const handleAddMaterial = () => {
-    if (!materialTitle || (!materialFile && !materialUrl)) {
-      setMaterialError("Agrega un título y un archivo o enlace")
-      return
-    }
-    (async () => {
-      if (materialFile) {
+    // Validación estricta según tipo
+    if (materialType === 'file') {
+      if (!materialTitle || !materialFile || !materialFileName || !materialFileType) {
+        setMaterialError("Agrega un título y selecciona un archivo válido")
+        return
+      }
+      (async () => {
         try {
           const token = localStorage.getItem("authToken")
           if (!token) {
@@ -123,8 +132,21 @@ export default function EditCoursePage() {
         } finally {
           setMaterialUploading(false)
         }
-      } else {
-        // Solo enlace
+      })()
+    } else {
+      // Solo enlace
+      if (!materialTitle || !materialUrl) {
+        setMaterialError("Agrega un título y un enlace válido")
+        return
+      }
+      // Validar formato de URL
+      try {
+        new URL(materialUrl)
+      } catch {
+        setMaterialError("El enlace no es válido")
+        return
+      }
+      (async () => {
         try {
           const token = localStorage.getItem("authToken")
           if (!token) return
@@ -156,8 +178,8 @@ export default function EditCoursePage() {
         } catch (err: any) {
           setMaterialError(err?.message || "Error al agregar el enlace")
         }
-      }
-    })()
+      })()
+    }
   }
 
   const handleDeleteMaterial = async (resourceId: number) => {
@@ -363,63 +385,77 @@ export default function EditCoursePage() {
               <CardContent>
                 <div className="space-y-4">
                   {/* Formulario para agregar material */}
-                  <div className="p-4 bg-background/50 rounded-lg border border-border">
-                    <Label className="mb-3 block">PDFs y Guías de Estudio</Label>
-                    <div
-                      className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition cursor-pointer flex flex-col items-center gap-2"
-                      onClick={() => document.getElementById("material-file")?.click()}
-                      onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
-                      onDrop={e => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                          const file = e.dataTransfer.files[0];
-                          handleMaterialFileChange({ target: { files: [file] } } as any);
-                        }
-                      }}
-                    >
-                      <input
-                        id="material-file"
-                        type="file"
-                        accept=".pdf,.doc,.docx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                        className="hidden"
-                        onChange={handleMaterialFileChange}
-                      />
-                      <span className="font-semibold">Arrastra o haz clic para subir archivo</span>
-                      <span className="text-xs text-muted-foreground">PDF, DOCX, PPTX hasta 10MB</span>
-                      {materialFileName && (
-                        <span className="text-sm text-green-600 mt-2">✓ {materialFileName}</span>
+                    <div className="p-4 bg-background/50 rounded-lg border border-border">
+                      <Label className="mb-3 block">PDFs y Guías de Estudio</Label>
+                      <div className="mb-4">
+                        <Label className="mr-4">Tipo de material:</Label>
+                        <Select value={materialType} onValueChange={val => setMaterialType(val as 'file' | 'link')}>
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="file">Archivo</SelectItem>
+                            <SelectItem value="link">Link</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {materialType === 'file' ? (
+                        <div
+                          className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition cursor-pointer flex flex-col items-center gap-2"
+                          onClick={() => document.getElementById("material-file")?.click()}
+                          onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
+                          onDrop={e => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                              const file = e.dataTransfer.files[0];
+                              handleMaterialFileChange({ target: { files: [file] } } as any);
+                            }
+                          }}
+                        >
+                          <input
+                            id="material-file"
+                            type="file"
+                            accept=".pdf,.doc,.docx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                            className="hidden"
+                            onChange={handleMaterialFileChange}
+                          />
+                          <span className="font-semibold">Arrastra o haz clic para subir archivo</span>
+                          <span className="text-xs text-muted-foreground">PDF, DOCX, PPTX hasta 10MB</span>
+                          {materialFileName && (
+                            <span className="text-sm text-green-600 mt-2">✓ {materialFileName}</span>
+                          )}
+                        </div>
+                      ) : (
+                        <Input
+                          placeholder="https://... (enlace externo)"
+                          value={materialUrl}
+                          onChange={(e) => {
+                            setMaterialUrl(e.target.value)
+                            setMaterialFile(null)
+                            setMaterialFileName("")
+                            setMaterialFileType("")
+                          }}
+                          className="bg-slate-700 border-slate-600"
+                        />
                       )}
+                      <Label className="mt-2 block">Título del material</Label>
+                      <Input
+                        placeholder="Ej: Guía de estudio"
+                        value={materialTitle}
+                        onChange={(e) => setMaterialTitle(e.target.value)}
+                        className="bg-slate-700 border-slate-600 mt-1"
+                      />
+                      <Button
+                        className="mt-3 bg-blue-600 hover:bg-blue-700"
+                        onClick={handleAddMaterial}
+                        type="button"
+                        disabled={materialUploading || !materialTitle || (!materialFile && !materialUrl)}
+                      >
+                        {materialUploading ? "Subiendo..." : "Agregar Material"}
+                      </Button>
+                      {materialError && <div className="text-red-400 mt-2">{materialError}</div>}
                     </div>
-                    <div className="my-2 text-center text-slate-400">o</div>
-                    <Input
-                      placeholder="https://... (enlace externo)"
-                      value={materialUrl}
-                      onChange={(e) => {
-                        setMaterialUrl(e.target.value)
-                        setMaterialFile(null)
-                        setMaterialFileName("")
-                        setMaterialFileType("")
-                      }}
-                      className="bg-slate-700 border-slate-600"
-                    />
-                    <Label className="mt-2 block">Título del material</Label>
-                    <Input
-                      placeholder="Ej: Guía de estudio"
-                      value={materialTitle}
-                      onChange={(e) => setMaterialTitle(e.target.value)}
-                      className="bg-slate-700 border-slate-600 mt-1"
-                    />
-                    <Button
-                      className="mt-3 bg-blue-600 hover:bg-blue-700"
-                      onClick={handleAddMaterial}
-                      type="button"
-                      disabled={materialUploading || !materialTitle || (!materialFile && !materialUrl)}
-                    >
-                      {materialUploading ? "Subiendo..." : "Agregar Material"}
-                    </Button>
-                    {materialError && <div className="text-red-400 mt-2">{materialError}</div>}
-                  </div>
                   {/* Lista de materiales */}
                   <div>
                     <h4 className="font-semibold mb-2">Materiales agregados</h4>

@@ -54,11 +54,7 @@ export default function UserProfile() {
           email: data.email || "",
           bio: data.bio || "",
           avatar_url: data.avatar_url || "/placeholder.svg",
-          specialties: data.specialties || [],
-          institution: data.institution || "",
           phone: data.phone || "",
-          location: data.location || "",
-          website: data.website || "",
         })
         console.log("[DEBUG] Perfil cargado correctamente ", profileData)
       } catch (err: any) {
@@ -102,11 +98,7 @@ export default function UserProfile() {
           last_name: profileData.last_name,
           bio: profileData.bio,
           phone: profileData.phone,
-          location: profileData.location,
-          website: profileData.website,
           avatar_url: profileData.avatar_url,
-          specialties: profileData.specialties,
-          institution: profileData.institution,
         }),
       })
       setIsEditing(false)
@@ -377,16 +369,6 @@ export default function UserProfile() {
                   />
                 </div>
                 <div>
-                  <label className="text-slate-300 text-sm">Institución</label>
-                  <Input
-                    name="institution"
-                    value={profileData.institution}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="mt-1 bg-slate-100 text-slate-900 border-slate-400 focus:bg-white focus:text-black disabled:opacity-60"
-                  />
-                </div>
-                <div>
                   <label className="text-slate-300 text-sm">Bio</label>
                   <textarea
                     name="bio"
@@ -398,23 +380,6 @@ export default function UserProfile() {
                   />
                 </div>
                 <div>
-                  <label className="text-slate-300 text-sm">Especialidades (separadas por coma)</label>
-                  <Input
-                    name="specialties"
-                    value={profileData.specialties.join(", ")}
-                    onChange={handleSpecialtiesChange}
-                    disabled={!isEditing}
-                    className="mt-1 bg-slate-100 text-slate-900 border-slate-400 focus:bg-white focus:text-black disabled:opacity-60"
-                  />
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {(profileData.specialties || []).map((skill: string, idx: number) => (
-                      <Badge key={idx} className="bg-blue-600 text-white px-3 py-1">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div>
                   <label className="text-slate-300 text-sm">Avatar (URL)</label>
                   <Input
                     name="avatar_url"
@@ -424,33 +389,11 @@ export default function UserProfile() {
                     className="mt-1 bg-slate-100 text-slate-900 border-slate-400 focus:bg-white focus:text-black disabled:opacity-60"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-slate-300 text-sm">Teléfono</label>
-                    <Input
-                      name="phone"
-                      value={profileData.phone}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      className="mt-1 bg-slate-100 text-slate-900 border-slate-400 focus:bg-white focus:text-black disabled:opacity-60"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-slate-300 text-sm">Ubicación</label>
-                    <Input
-                      name="location"
-                      value={profileData.location}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      className="mt-1 bg-slate-100 text-slate-900 border-slate-400 focus:bg-white focus:text-black disabled:opacity-60"
-                    />
-                  </div>
-                </div>
                 <div>
-                  <label className="text-slate-300 text-sm">Sitio Web</label>
+                  <label className="text-slate-300 text-sm">Teléfono</label>
                   <Input
-                    name="website"
-                    value={profileData.website}
+                    name="phone"
+                    value={profileData.phone}
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     className="mt-1 bg-slate-100 text-slate-900 border-slate-400 focus:bg-white focus:text-black disabled:opacity-60"

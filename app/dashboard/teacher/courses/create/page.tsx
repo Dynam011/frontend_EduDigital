@@ -51,6 +51,7 @@ export default function CreateCoursePage() {
   const [materialError, setMaterialError] = useState("")
   const [materialUrl, setMaterialUrl] = useState("")
   const [materialUploading, setMaterialUploading] = useState(false)
+  const [materialType, setMaterialType] = useState<'file' | 'link'>('file')
 
   // Módulos dinámicos
   const handleAddModule = () => {
@@ -293,20 +294,11 @@ export default function CreateCoursePage() {
         })
       }
 
-      // Subir materiales
-      for (const mat of materials) {
-        let url = mat.url
-        let file_type = mat.fileType
-        if (mat.file) {
-          // Convertir archivo a base64
-          const base64 = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader()
-            reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1])
-            reader.onerror = reject
-            reader.readAsDataURL(mat.file as File)
-          })
-          url = base64
-        }
+
+      // Subir materiales: primero los links, luego los archivos (dos pasos para archivos)
+      // 1. Links
+      const linkMaterials = materials.filter(mat => mat.fileType === 'link' && mat.title && mat.url)
+      for (const mat of linkMaterials) {
         await fetch(`${api_url}/api/courseResource`, {
           method: "POST",
           headers: {
@@ -316,10 +308,49 @@ export default function CreateCoursePage() {
           body: JSON.stringify({
             course_id: Number(course.id),
             title: mat.title,
-            url,
-            file_type,
+            url: mat.url,
+            file_type: 'link',
           }),
         })
+      }
+
+      // 2. Archivos (dos pasos: subir y luego registrar)
+      const fileMaterials = materials.filter(mat => mat.file && mat.title && mat.fileName && mat.fileType)
+      for (const mat of fileMaterials) {
+        try {
+          // Paso 1: subir archivo
+          const uploadForm = new FormData()
+          uploadForm.append("archivo", mat.file as File)
+          uploadForm.append("title", mat.title)
+          const uploadRes = await fetch(`${api_url}/api/courseResource/upload`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+            body: uploadForm,
+          })
+          if (!uploadRes.ok) {
+            const text = await uploadRes.text()
+            throw new Error(text || "Error al subir el archivo")
+          }
+          const data = await uploadRes.json()
+          // Paso 2: registrar referencia en la base de datos
+          await fetch(`${api_url}/api/courseResource`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              course_id: Number(course.id),
+              title: mat.title,
+              url: data.url,
+              file_type: data.file_type,
+            }),
+          })
+        } catch (err: any) {
+          setError("Error al subir el archivo '" + mat.fileName + "': " + (err?.message || "Error desconocido"))
+          setIsPublishing(false)
+          return
+        }
       }
 
       setSuccess("¡Curso creado exitosamente! Redirigiendo...")
@@ -356,18 +387,56 @@ export default function CreateCoursePage() {
     setMaterialFileName(file.name)
     setMaterialFileType(file.type)
     setMaterialError("")
-    setMaterialUrl("")
+    setMaterialUrl("") // Si sube archivo, limpiar url
   }
 
   // Agregar material a la lista local
   const handleAddMaterial = () => {
-    if (!materialTitle || (!materialFile && !materialUrl)) {
-      setMaterialError("Agrega un título y un archivo o enlace")
-      return
-    }
-
-    const addMaterialToList = (payload: { title: string; file: File | null; fileName: string; fileType: string; url: string }) => {
-      setMaterials((prev) => [...prev, payload])
+    // Validación estricta según tipo
+    if (materialType === 'file') {
+      if (!materialTitle || !materialFile || !materialFileName || !materialFileType) {
+        setMaterialError("Agrega un título y selecciona un archivo válido")
+        return
+      }
+      // Solo previsualización, no sube el archivo aún
+      setMaterials((prev) => [
+        ...prev,
+        {
+          title: materialTitle,
+          file: materialFile,
+          fileName: materialFileName,
+          fileType: materialFileType,
+          url: "", // Se llenará tras crear el curso
+        },
+      ])
+      setMaterialTitle("")
+      setMaterialFile(null)
+      setMaterialFileName("")
+      setMaterialFileType("")
+      setMaterialUrl("")
+      setMaterialError("")
+    } else {
+      if (!materialTitle || !materialUrl) {
+        setMaterialError("Agrega un título y un enlace válido")
+        return
+      }
+      // Validar formato de URL
+      try {
+        new URL(materialUrl)
+      } catch {
+        setMaterialError("El enlace no es válido")
+        return
+      }
+      setMaterials((prev) => [
+        ...prev,
+        {
+          title: materialTitle,
+          file: null,
+          fileName: "",
+          fileType: "link",
+          url: materialUrl,
+        },
+      ])
       setMaterialTitle("")
       setMaterialFile(null)
       setMaterialFileName("")
@@ -375,52 +444,6 @@ export default function CreateCoursePage() {
       setMaterialUrl("")
       setMaterialError("")
     }
-
-    ;(async () => {
-      // Si hay un archivo, intentar subirlo al backend usando FormData
-      if (materialFile) {
-        try {
-          const token = localStorage.getItem("authToken")
-          if (!token) {
-            setMaterialError("No autenticado")
-            return
-          }
-          setMaterialUploading(true)
-          const formData = new FormData()
-          // 'archivo' es el nombre de campo que el backend debería esperar
-          formData.append("archivo", materialFile)
-          formData.append("title", materialTitle)
-
-          const res = await fetch(`${api_url}/api/courseResource`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            body: formData,
-          })
-
-          if (!res.ok) {
-            const text = await res.text()
-            throw new Error(text || "Error al subir el archivo")
-          }
-
-          const data = await res.json()
-          // Esperamos que el backend retorne al menos { url, file_type, file_name }
-          const url = data.url || data.file_url || ""
-          const file_type = data.file_type || materialFile.type
-          const file_name = data.file_name || data.fileName || materialFileName
-
-          addMaterialToList({ title: materialTitle, file: null, fileName: file_name, fileType: file_type, url })
-        } catch (err: any) {
-          setMaterialError(err?.message || "Error al subir el archivo")
-        } finally {
-          setMaterialUploading(false)
-        }
-      } else {
-        // Si es solo enlace
-        addMaterialToList({ title: materialTitle, file: null, fileName: materialFileName, fileType: "link", url: materialUrl })
-      }
-    })()
   }
 
   // Eliminar material local
@@ -693,45 +716,58 @@ export default function CreateCoursePage() {
                   <div className="space-y-4">
                     <div className="p-4 bg-background/50 rounded-lg border border-border">
                       <Label className="mb-3 block">PDFs y Guías de Estudio</Label>
-                      {/* Área drag & drop y clic para subir archivo */}
-                      <div
-                        className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition cursor-pointer flex flex-col items-center gap-2"
-                        onClick={() => document.getElementById("material-file")?.click()}
-                        onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
-                        onDrop={e => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                            const file = e.dataTransfer.files[0];
-                            handleMaterialFileChange({ target: { files: [file] } } as any);
-                          }
-                        }}
-                      >
-                        <input
-                          id="material-file"
-                          type="file"
-                          accept=".pdf,.doc,.docx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                          className="hidden"
-                          onChange={handleMaterialFileChange}
-                        />
-                        <span className="font-semibold">Arrastra o haz clic para subir archivo</span>
-                        <span className="text-xs text-muted-foreground">PDF, DOCX, PPTX hasta 10MB</span>
-                        {materialFileName && (
-                          <span className="text-sm text-green-600 mt-2">✓ {materialFileName}</span>
-                        )}
+                      <div className="mb-4">
+                        <Label className="mr-4">Tipo de material:</Label>
+                        <Select value={materialType} onValueChange={val => setMaterialType(val as 'file' | 'link')}>
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="file">Archivo</SelectItem>
+                            <SelectItem value="link">Link</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <div className="my-2 text-center text-slate-400">o</div>
-                      <Input
-                        placeholder="https://... (enlace externo)"
-                        value={materialUrl}
-                        onChange={(e) => {
-                          setMaterialUrl(e.target.value)
-                          setMaterialFile(null)
-                          setMaterialFileName("")
-                          setMaterialFileType("")
-                        }}
-                        className="bg-slate-700 border-slate-600"
-                      />
+                      {materialType === 'file' ? (
+                        <div
+                          className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition cursor-pointer flex flex-col items-center gap-2"
+                          onClick={() => document.getElementById("material-file")?.click()}
+                          onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
+                          onDrop={e => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                              const file = e.dataTransfer.files[0];
+                              handleMaterialFileChange({ target: { files: [file] } } as any);
+                            }
+                          }}
+                        >
+                          <input
+                            id="material-file"
+                            type="file"
+                            accept=".pdf,.doc,.docx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                            className="hidden"
+                            onChange={handleMaterialFileChange}
+                          />
+                          <span className="font-semibold">Arrastra o haz clic para subir archivo</span>
+                          <span className="text-xs text-muted-foreground">PDF, DOCX, PPTX hasta 10MB</span>
+                          {materialFileName && (
+                            <span className="text-sm text-green-600 mt-2">✓ {materialFileName}</span>
+                          )}
+                        </div>
+                      ) : (
+                        <Input
+                          placeholder="https://... (enlace externo)"
+                          value={materialUrl}
+                          onChange={(e) => {
+                            setMaterialUrl(e.target.value)
+                            setMaterialFile(null)
+                            setMaterialFileName("")
+                            setMaterialFileType("")
+                          }}
+                          className="bg-slate-700 border-slate-600"
+                        />
+                      )}
                       <Label className="mt-2 block">Título del material</Label>
                       <Input
                         placeholder="Ej: Guía de estudio"
