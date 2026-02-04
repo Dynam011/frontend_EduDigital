@@ -1,1 +1,1 @@
-export const api_url = 'http://backend-edudigital.onrender.com'
+export const api_url = 'https://backend-edudigital.onrender.com'
