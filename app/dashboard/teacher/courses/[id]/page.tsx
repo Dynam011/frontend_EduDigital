@@ -8,7 +8,6 @@ import Link from "next/link"
 import { ArrowLeft, BookOpen, FileText, Layers, FileDown } from "lucide-react"
 import { api_url } from "@/app/api/api"
 
-const backendBaseUrl = "https://backend-edudigital.onrender.com"; // o tu dominio real
 
 const TeacherCoursePage = () => {
   const params = useParams()
@@ -263,13 +262,13 @@ const TeacherCoursePage = () => {
                             // Si la url ya es absoluta (empieza con http), usarla tal cual
                             if (r.url && (r.url.startsWith("http://") || r.url.startsWith("https://"))) return r.url;
                             // Si ya empieza con /uploads/ usar la URL completa del backend
-                            if (r.url && r.url.startsWith("/uploads/")) return `${backendBaseUrl}${r.url}`;
+                            if (r.url && r.url.startsWith("/uploads/")) return `${api_url}${r.url}`;
                             // Si el backend retorna solo el nombre de archivo, construir la ruta completa
-                            if (r.file_name) return `${backendBaseUrl}/uploads/${r.file_name}`;
+                            if (r.file_name) return `${api_url}/uploads/${r.file_name}`;
                             // Si la url es solo el nombre, también
-                            if (r.url && !r.url.includes("/")) return `${backendBaseUrl}/uploads/${r.url}`;
+                            if (r.url && !r.url.includes("/")) return `${api_url}/uploads/${r.url}`;
                             // Fallback: extraer nombre de archivo de la url
-                            return `${backendBaseUrl}/uploads/${r.url ? r.url.replace(/^.*[\\/]/, "") : ""}`;
+                            return `${api_url}/uploads/${r.url ? r.url.replace(/^.*[\\/]/, "") : ""}`;
                           })()}
                           download={r.file_name || r.title}
                           className="ml-4 text-blue-400 underline text-xs"

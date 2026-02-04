@@ -308,6 +308,28 @@ export default function CourseDetailPage() {
                         <ul className="space-y-3">
                           {courseResources.map((resource) => (
                             <li key={resource.id}>
+                              {resource.file_type === "application/pdf" ? (
+                                <a
+                                  href={api_url+resource.url}
+                                  target="_blank"
+                                  download
+                                  rel="noopener noreferrer"
+                                  className="flex items-center p-3 rounded-lg bg-background hover:bg-muted transition-colors"
+                                >
+                                  <FileIcon className="h-5 w-5 mr-3 text-primary" />
+                                  <span className="font-medium">{resource.title} (PDF)</span>
+                                </a>
+                              ) : (
+                                <Link
+                                  href={resource.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center p-3 rounded-lg bg-background hover:bg-muted transition-colors"
+                                >
+                                  <FileIcon className="h-5 w-5 mr-3 text-primary" />
+                                  <span className="font-medium">{resource.title} (URL)</span>
+                                </Link>
+                              )}
                               <a
                                 href={resource.url}
                                 target="_blank"
