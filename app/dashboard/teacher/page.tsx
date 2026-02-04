@@ -12,7 +12,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts"
 import { api_url } from "../../api/api"
 import { useAuth } from "@/lib/auth-context"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from "@/components/ui/use-toast"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+
 export default function TeacherDashboard() {
+  const { toast } = useToast();
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("overview")
   const [courses, setCourses] = useState<any[]>([])
@@ -22,6 +28,11 @@ export default function TeacherDashboard() {
   const [notifications, setNotifications] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [teacherName, setTeacherName] = useState<string>("")
+
+  // Nuevo estado para el diálogo de confirmación de eliminación
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [courseToDelete, setCourseToDelete] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken")
@@ -145,11 +156,19 @@ export default function TeacherDashboard() {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       })
+      toast({
+        title: "Curso duplicado",
+        description: "El curso fue duplicado correctamente.",
+        variant: "default",
+      })
       // Opcional: recargar cursos
       window.location.reload()
     } catch (err) {
-      // Manejo de error
-      alert("Error al duplicar el curso")
+      toast({
+        title: "Error al duplicar el curso",
+        description: "No se pudo duplicar el curso.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -164,10 +183,19 @@ export default function TeacherDashboard() {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       })
+      toast({
+        title: "Curso archivado",
+        description: "El curso fue archivado correctamente.",
+        variant: "default",
+      })
       // Opcional: recargar cursos
       window.location.reload()
     } catch (err) {
-      alert("Error al archivar el curso")
+      toast({
+        title: "Error al archivar el curso",
+        description: "No se pudo archivar el curso.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -178,32 +206,120 @@ export default function TeacherDashboard() {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       })
-      // Actualiza la lista localmente sin recargar toda la página
       setCourses((prev: any[]) =>
         prev.map((c) => (c.id === courseId ? { ...c, is_archived: false } : c))
       )
+      toast({
+        title: "Curso desarchivado",
+        description: "El curso fue desarchivado correctamente.",
+        variant: "default",
+      })
     } catch (err) {
-      alert("Error al desarchivar el curso")
+      toast({
+        title: "Error al desarchivar el curso",
+        description: "No se pudo desarchivar el curso.",
+        variant: "destructive",
+      })
     }
   }
 
+  // Modifica handleDeleteCourse para no usar window.confirm
   const handleDeleteCourse = async (courseId: string) => {
-    const token = localStorage.getItem("authToken")
-    const confirmed = window.confirm("¿Seguro que quieres eliminar este curso? Esta acción no se puede deshacer.")
-    if (!confirmed) return
+    setCourseToDelete(courseId)
+    setDeleteDialogOpen(true)
+  }
+
+  // Nueva función para confirmar la eliminación
+  const confirmDeleteCourse = async () => {
+    if (!courseToDelete) return;
+    const token = localStorage.getItem("authToken");
     try {
-      await fetch(`${api_url}/api/courses/${courseId}`, {
+      const enrollRes = await fetch(`${api_url}/api/enrollments`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const allEnrollments = await enrollRes.json();
+      const courseEnrollments = Array.isArray(allEnrollments)
+        ? allEnrollments.filter((e) => String(e.course_id) === String(courseToDelete))
+        : [];
+      if (courseEnrollments.length > 0) {
+        toast({
+          title: "No se puede eliminar el curso",
+          description: `Hay ${courseEnrollments.length} estudiante(s) inscrito(s). Elimina primero las inscripciones.`,
+          variant: "destructive",
+        });
+        setDeleteError(`No se puede eliminar el curso. Hay ${courseEnrollments.length} estudiante(s) inscrito(s). Elimina primero las inscripciones.`);
+        setDeleteDialogOpen(false);
+        setCourseToDelete(null);
+        return;
+      }
+      // Si no hay inscritos, proceder a eliminar
+      const res = await fetch(`${api_url}/api/courses/${courseToDelete}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
-      })
-      setCourses((prev: any[]) => prev.filter((c) => c.id !== courseId))
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: res.statusText }));
+        toast({
+          title: "No se pudo eliminar el curso",
+          description: err.message || res.statusText,
+          variant: "destructive",
+        });
+        setDeleteDialogOpen(false);
+        setCourseToDelete(null);
+        return;
+      }
+      setCourses((prev: any[]) => prev.filter((c) => c.id !== courseToDelete));
+      toast({
+        title: "Curso eliminado",
+        description: "El curso fue eliminado correctamente.",
+        variant: "default",
+      });
     } catch (err) {
-      alert("Error al eliminar el curso")
+      toast({
+        title: "Error al eliminar el curso",
+        description: "Ocurrió un error inesperado.",
+        variant: "destructive",
+      });
     }
-  }
+    setDeleteDialogOpen(false);
+    setCourseToDelete(null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Diálogo de confirmación de eliminación */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Seguro que quieres eliminar este curso?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. El curso y todo su contenido serán eliminados permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={confirmDeleteCourse}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <Dialog open={!!deleteError} onOpenChange={(open) => { if (!open) setDeleteError(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive">No se puede eliminar el curso</DialogTitle>
+            <DialogDescription>{deleteError}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="destructive" onClick={() => setDeleteError(null)}>Cerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-start justify-between mb-8">
           <div>
@@ -539,6 +655,7 @@ export default function TeacherDashboard() {
           </TabsContent>
         </Tabs>
       </main>
+      <Toaster />
     </div>
   )
 }

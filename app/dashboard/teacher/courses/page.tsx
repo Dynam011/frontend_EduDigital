@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useToast } from "@/components/ui/use-toast"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { api_url } from "@/app/api/api"
 
 export default function CoursesPage() {
+  const { toast } = useToast();
   const [courses, setCourses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
@@ -129,42 +131,64 @@ export default function CoursesPage() {
                                     `¿Estás seguro de que deseas eliminar "${course.title}"? Esta acción no se puede deshacer.`
                                   )
                                 ) {
-                                  // Verificar si hay estudiantes inscritos antes de eliminar
                                   try {
                                     const token = localStorage.getItem("authToken")
                                     if (!token) {
-                                      alert("No autenticado")
-                                      return
+                                      toast({
+                                        title: "No autenticado",
+                                        description: "Debes iniciar sesión para eliminar un curso.",
+                                        variant: "destructive",
+                                      });
+                                      return;
                                     }
-                                    setLoading(true)
-                                    // Consultar enrollments para este curso
-                                    const enrollRes = await fetch(`${api_url}/api/enrollments?course_id=${course.id}`, {
+                                    setLoading(true);
+                                    // Obtener todos los enrollments y filtrar por course_id en frontend
+                                    const enrollRes = await fetch(`${api_url}/api/enrollments`, {
                                       headers: { Authorization: `Bearer ${token}` },
-                                    })
-                                    const enrollments = await enrollRes.json()
-                                    if (Array.isArray(enrollments) && enrollments.length > 0) {
-                                      alert(`No se puede eliminar el curso porque hay ${enrollments.length} estudiante(s) inscrito(s). Elimina primero las inscripciones.`)
-                                      setLoading(false)
-                                      return
+                                    });
+                                    const allEnrollments = await enrollRes.json();
+                                    const courseEnrollments = Array.isArray(allEnrollments)
+                                      ? allEnrollments.filter((e) => String(e.course_id) === String(course.id))
+                                      : [];
+                                    if (courseEnrollments.length > 0) {
+                                      toast({
+                                        title: "No se puede eliminar el curso",
+                                        description: `Hay ${courseEnrollments.length} estudiante(s) inscrito(s). Elimina primero las inscripciones.`,
+                                        variant: "destructive",
+                                      });
+                                      setLoading(false);
+                                      return;
                                     }
                                     // Si no hay inscritos, proceder a eliminar
                                     const res = await fetch(`${api_url}/api/courses/${course.id}`, {
                                       method: "DELETE",
                                       headers: { Authorization: `Bearer ${token}` },
-                                    })
+                                    });
                                     if (!res.ok) {
-                                      const err = await res.json().catch(() => ({ message: res.statusText }))
-                                      alert(`No se pudo eliminar el curso: ${err.message || res.statusText}`)
-                                      setLoading(false)
-                                      return
+                                      const err = await res.json().catch(() => ({ message: res.statusText }));
+                                      toast({
+                                        title: "No se pudo eliminar el curso",
+                                        description: err.message || res.statusText,
+                                        variant: "destructive",
+                                      });
+                                      setLoading(false);
+                                      return;
                                     }
-                                    setCourses((prev) => prev.filter((c) => c.id !== course.id))
-                                    alert("Curso eliminado correctamente")
+                                    setCourses((prev) => prev.filter((c) => c.id !== course.id));
+                                    toast({
+                                      title: "Curso eliminado",
+                                      description: `El curso "${course.title}" fue eliminado correctamente.`,
+                                      variant: "default",
+                                    });
                                   } catch (error) {
-                                    console.error("Delete course error:", error)
-                                    alert("Error al eliminar el curso")
+                                    console.error("Delete course error:", error);
+                                    toast({
+                                      title: "Error al eliminar el curso",
+                                      description: "Ocurrió un error inesperado.",
+                                      variant: "destructive",
+                                    });
                                   } finally {
-                                    setLoading(false)
+                                    setLoading(false);
                                   }
                                 }
                               }}
