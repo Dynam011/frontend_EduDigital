@@ -21,6 +21,7 @@ export default function TeacherDashboard() {
   const [studentProgressData, setStudentProgressData] = useState<any[]>([])
   const [notifications, setNotifications] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [teacherName, setTeacherName] = useState<string>("")
 
   useEffect(() => {
     const token = localStorage.getItem("authToken")
@@ -34,14 +35,25 @@ export default function TeacherDashboard() {
       setLoading(true)
       try {
         const teacherId = localStorage.getItem("userId")
+        const token = localStorage.getItem("authToken")
+        // 0. Obtener nombre del docente
+        if (teacherId && token) {
+          try {
+            const userRes = await fetch(`${api_url}/api/users/${teacherId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            const userData = await userRes.json()
+            const resolvedName = userData?.name || `${userData?.first_name || ""} ${userData?.last_name || ""}`.trim() || "Profesor"
+            setTeacherName(resolvedName)
+          } catch {
+            setTeacherName("Profesor")
+          }
+        }
+
         const coursesRes = await fetch(`${api_url}/api/courses/teacher/${teacherId}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         const coursesData = await coursesRes.json()
-        
-        console.log("Id Teacher-"+teacherId)
-        console.log(coursesData)
-
         setCourses(coursesData)
 
         // 2. Obtener estudiantes totales y tasa de finalización
@@ -49,8 +61,6 @@ export default function TeacherDashboard() {
         let totalCompletion = 0
         const perfData: any[] = []
         for (const course of coursesData) {
-          
-          console.log(course)
           const enrollRes = await fetch(`${api_url}/api/enrollments/course/${course.id}`, {
             headers: { Authorization: `Bearer ${token}` },
           })
@@ -197,51 +207,7 @@ export default function TeacherDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-start justify-between mb-8">
           <div>
-            {
-              (() => {
-
-                const TeacherName: React.FC = () => {
-                  const [name, setName] = useState<string | null>(null);
-                  const [loading, setLoading] = useState(true);
-
-                  useEffect(() => {
-                    if (name) return; // Si ya hay nombre, no volver a pedir
-                    const id = localStorage.getItem("userId");
-                    const token = localStorage.getItem("authToken");
-                    if (!id || !token) {
-                      setName(null);
-                      setLoading(false);
-                      return;
-                    }
-                    let cancelled = false;
-                    setLoading(true);
-                    fetch(`${api_url}/api/users/${id}`, {
-                      headers: { Authorization: `Bearer ${token}` },
-                    })
-                      .then((res) => res.json())
-                      .then((data) => {
-                        if (cancelled) return;
-                        const resolvedName = data?.name || `${data?.first_name || ""} ${data?.last_name || ""}`.trim() || "Profesor";
-                        setName(resolvedName);
-                        setLoading(false);
-                      })
-                      .catch(() => {
-                        if (!cancelled) {
-                          setName("Profesor");
-                          setLoading(false);
-                        }
-                      });
-                    return () => {
-                      cancelled = true;
-                    };
-                  }, [name]);
-
-                  return <h1 className="text-4xl font-bold mb-2">Panel del docente {loading ? "Cargando..." : name}</h1>;
-                };
-
-                return <TeacherName />
-              })()
-            }
+            <h1 className="text-4xl font-bold mb-2">Panel del docente {teacherName ? teacherName : "Cargando..."}</h1>
           </div>
           <Link href="/dashboard/teacher/courses/create">
             <Button size="lg" className="gap-2">

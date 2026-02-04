@@ -123,43 +123,49 @@ export default function CoursesPage() {
                             <DropdownMenuItem>Estudiantes</DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
-                              onClick={() => {
+                              onClick={async () => {
                                 if (
                                   confirm(
-                                    `¿Estás seguro de que deseas eliminar "${course.title}"? Esta acción no se puede deshacer.`,
+                                    `¿Estás seguro de que deseas eliminar "${course.title}"? Esta acción no se puede deshacer.`
                                   )
                                 ) {
-                                  // Implement delete functionality
-                                  (async () => {
-                                    try {
-                                      const token = localStorage.getItem("authToken")
-                                      if (!token) {
-                                        alert("No autenticado")
-                                        return
-                                      }
-
-                                      setLoading(true)
-                                      const res = await fetch(`${api_url}/api/courses/${course.id}`, {
-                                        method: "DELETE",
-                                        headers: { Authorization: `Bearer ${token}` },
-                                      })
-
-                                      if (!res.ok) {
-                                        const err = await res.json().catch(() => ({ message: res.statusText }))
-                                        alert(`No se pudo eliminar el curso: ${err.message || res.statusText}`)
-                                        return
-                                      }
-
-                                      // Actualizar UI eliminando el curso del estado
-                                      setCourses((prev) => prev.filter((c) => c.id !== course.id))
-                                      alert("Curso eliminado correctamente")
-                                    } catch (error) {
-                                      console.error("Delete course error:", error)
-                                      alert("Error al eliminar el curso")
-                                    } finally {
-                                      setLoading(false)
+                                  // Verificar si hay estudiantes inscritos antes de eliminar
+                                  try {
+                                    const token = localStorage.getItem("authToken")
+                                    if (!token) {
+                                      alert("No autenticado")
+                                      return
                                     }
-                                  })()
+                                    setLoading(true)
+                                    // Consultar enrollments para este curso
+                                    const enrollRes = await fetch(`${api_url}/api/enrollments?course_id=${course.id}`, {
+                                      headers: { Authorization: `Bearer ${token}` },
+                                    })
+                                    const enrollments = await enrollRes.json()
+                                    if (Array.isArray(enrollments) && enrollments.length > 0) {
+                                      alert(`No se puede eliminar el curso porque hay ${enrollments.length} estudiante(s) inscrito(s). Elimina primero las inscripciones.`)
+                                      setLoading(false)
+                                      return
+                                    }
+                                    // Si no hay inscritos, proceder a eliminar
+                                    const res = await fetch(`${api_url}/api/courses/${course.id}`, {
+                                      method: "DELETE",
+                                      headers: { Authorization: `Bearer ${token}` },
+                                    })
+                                    if (!res.ok) {
+                                      const err = await res.json().catch(() => ({ message: res.statusText }))
+                                      alert(`No se pudo eliminar el curso: ${err.message || res.statusText}`)
+                                      setLoading(false)
+                                      return
+                                    }
+                                    setCourses((prev) => prev.filter((c) => c.id !== course.id))
+                                    alert("Curso eliminado correctamente")
+                                  } catch (error) {
+                                    console.error("Delete course error:", error)
+                                    alert("Error al eliminar el curso")
+                                  } finally {
+                                    setLoading(false)
+                                  }
                                 }
                               }}
                             >

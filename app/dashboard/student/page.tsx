@@ -17,6 +17,7 @@ export default function StudentDashboard() {
   const [completedCourses, setCompletedCourses] = useState([])
   const [badges, setBadges] = useState([])
   const [error, setError] = useState<string | null>(null)
+  const [studentName, setStudentName] = useState<string>("")
 
   const [averageProgress, setAverageProgress] = useState(0)
   const [hoursLearned, setHoursLearned] = useState(0)
@@ -36,15 +37,15 @@ export default function StudentDashboard() {
       setLoading(true)
       try {
         const id = localStorage.getItem("userId")
-                    const token = localStorage.getItem("authToken")
-                    if (!id) return
+        const token = localStorage.getItem("authToken")
+        if (!id) return
         // 1. Perfil del estudiante
-        const userRes = await   fetch(`${api_url}/api/users/${id}`, {
-                      headers: { Authorization: `Bearer ${token}` },
-                    })
-       
+        const userRes = await fetch(`${api_url}/api/users/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
         const userData = await userRes.json()
         setStudent(userData)
+        setStudentName(`${userData.first_name} ${userData.last_name}`)
 
         // 2. Obtener todos los cursos
         const allCoursesRes = await fetch(`${api_url}/api/courses`, {
@@ -92,13 +93,7 @@ export default function StudentDashboard() {
           allCourses.filter((course: any) => completedCourseIds.includes(String(course.id)))
         )
 
-        // 6. Badges/logros (certificados)
-        const badgeRes = await fetch(`${api_url}/api/certificates?studentId=${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const badgeData = await badgeRes.json()
-        setBadges(Array.isArray(badgeData) ? badgeData : badgeData.certificates || [])
-      } catch (err) {
+       } catch (err) {
         setError("No se pudieron cargar los datos.")
       } finally {
         setLoading(false)
@@ -158,9 +153,7 @@ export default function StudentDashboard() {
             {student && (
               <>
                 <img src={student.avatar_url || "/placeholder.svg"} alt="Avatar" className="w-10 h-10 rounded-full" />
-                <span className="font-semibold">
-                  {student.first_name} {student.last_name}
-                </span>
+                <span className="font-semibold">{studentName}</span>
               </>
             )}
           </div>
@@ -176,7 +169,7 @@ export default function StudentDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Portal del estudiante {student ? `${student.first_name} ${student.last_name}` : ""}</h1>
+          <h1 className="text-4xl font-bold mb-2">Portal del estudiante {studentName}</h1>
         </div>
 
         {/* Key Stats */}
@@ -204,7 +197,6 @@ export default function StudentDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full max-w-md grid-cols-4 bg-slate-800">
             <TabsTrigger value="courses">Cursos</TabsTrigger>
-  
           </TabsList>
 
           <TabsContent value="courses">
