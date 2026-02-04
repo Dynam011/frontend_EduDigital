@@ -330,15 +330,7 @@ export default function CourseDetailPage() {
                                   <span className="font-medium">{resource.title} (URL)</span>
                                 </Link>
                               )}
-                              <a
-                                href={resource.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center p-3 rounded-lg bg-background hover:bg-muted transition-colors"
-                              >
-                                <FileIcon className="h-5 w-5 mr-3 text-primary" />
-                                <span className="font-medium">{resource.title}</span>
-                              </a>
+  
                             </li>
                           ))}
                         </ul>
